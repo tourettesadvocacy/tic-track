@@ -33,14 +33,35 @@ export class AzureStorageService {
         this.blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
       }
     } catch (error) {
-      console.error('Failed to initialize Azure Storage:', error);
+      console.error('Failed to initialize Azure Storage. Please check your connection string configuration:', error);
       throw error;
     }
   }
 
   async setConnectionString(connectionString: string): Promise<void> {
-    await AsyncStorage.setItem(AZURE_CONNECTION_STRING_KEY, connectionString);
-    this.blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+    // Validate connection string format
+    if (!connectionString || typeof connectionString !== 'string') {
+      throw new Error('Connection string must be a non-empty string');
+    }
+    
+    // Basic validation for Azure connection string format
+    const requiredParts = ['AccountName=', 'AccountKey='];
+    const hasRequiredParts = requiredParts.every(part => connectionString.includes(part));
+    
+    if (!hasRequiredParts) {
+      throw new Error('Invalid Azure Storage connection string format. Must include AccountName and AccountKey.');
+    }
+
+    try {
+      // Test the connection string by creating a client
+      const testClient = BlobServiceClient.fromConnectionString(connectionString);
+      
+      // Store the validated connection string
+      await AsyncStorage.setItem(AZURE_CONNECTION_STRING_KEY, connectionString);
+      this.blobServiceClient = testClient;
+    } catch (error) {
+      throw new Error(`Failed to configure Azure Storage. Invalid connection string: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async uploadData(data: TicData[] | EmotionData[], fileName: string): Promise<string | null> {

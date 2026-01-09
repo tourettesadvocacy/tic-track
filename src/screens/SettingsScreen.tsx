@@ -56,7 +56,9 @@ export const SettingsScreen = ({ navigation }: Props) => {
       setIsConfigured(true);
       Alert.alert('Success', 'Azure Storage configured successfully');
     } catch (error) {
-      Alert.alert('Error', 'Failed to configure Azure Storage');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to configure Azure Storage';
+      Alert.alert('Configuration Error', errorMessage);
+      console.error('Failed to save Azure config:', error);
     }
   };
 
