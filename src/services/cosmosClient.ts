@@ -163,7 +163,7 @@ export const uploadEvent = async (event: Event): Promise<boolean> => {
  */
 async function queryEvents(
   query: string = 'SELECT * FROM c',
-  parameters: Array<{ name: string; value: any }> = []
+  parameters: Array<{ name: string; value: string | number | boolean | null }> = []
 ): Promise<Event[]> {
   if (!azureConfig || !isInitialized) {
     console.warn('Cosmos DB not initialized');
