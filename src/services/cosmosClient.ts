@@ -51,11 +51,6 @@ export const initCosmosClient = async (): Promise<boolean> => {
       return false;
     }
     
-    if (!config) {
-      isInitialized = false;
-      return false;
-    }
-    
     azureConfig = config;
     
     // Test connection
@@ -121,7 +116,7 @@ export const uploadEvent = async (event: Event): Promise<boolean> => {
         'Content-Type': 'application/json',
         'x-ms-date': date,
         'x-ms-version': '2018-12-31',
-        'x-ms-documentdb-partitionkey': `["${event.event_type}"]`,
+        'x-ms-documentdb-partitionkey': JSON.stringify([event.event_type]),
       },
       body: JSON.stringify(cosmosEvent),
     });
@@ -296,7 +291,7 @@ export const deleteEventFromCosmos = async (id: string, eventType: string): Prom
         'Authorization': authToken,
         'x-ms-date': date,
         'x-ms-version': '2018-12-31',
-        'x-ms-documentdb-partitionkey': `["${eventType}"]`,
+        'x-ms-documentdb-partitionkey': JSON.stringify([eventType]),
       },
     });
     
@@ -308,8 +303,10 @@ export const deleteEventFromCosmos = async (id: string, eventType: string): Prom
       if (response.status === 401 || response.status === 403) {
         throw new Error('Invalid Azure Cosmos DB credentials');
       } else if (response.status === 404) {
+        // Treat 404 as success for idempotent delete operations
+        // If the event is already deleted, that's the desired state
         console.warn(`Event ${id} not found in Cosmos DB - may already be deleted`);
-        return true; // Consider as success if already gone
+        return true;
       } else if (response.status === 429) {
         throw new Error('Rate limit exceeded - please try again later');
       }
