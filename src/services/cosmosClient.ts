@@ -4,10 +4,17 @@
  */
 import CryptoJS from 'crypto-js';
 import { getAzureConfig, isAzureConfigValid, AzureConfig } from '../config/azure';
-import { Event } from '../types/events';
+import { Event, EventType } from '../types/events';
 
 let azureConfig: AzureConfig | null = null;
 let isInitialized = false;
+
+/**
+ * Validate that a value is a valid EventType
+ */
+function isValidEventType(value: string): value is EventType {
+  return value === 'tic' || value === 'emotional' || value === 'combined';
+}
 
 /**
  * Generate HMAC-SHA256 signature for Azure Cosmos DB REST API authentication
@@ -85,6 +92,12 @@ export const isCosmosClientInitialized = (): boolean => {
 export const uploadEvent = async (event: Event): Promise<boolean> => {
   if (!azureConfig || !isInitialized) {
     console.warn('Cosmos DB not initialized');
+    return false;
+  }
+  
+  // Validate event type
+  if (!isValidEventType(event.event_type)) {
+    console.error(`Invalid event type: ${event.event_type}`);
     return false;
   }
   
@@ -268,6 +281,12 @@ export const fetchEventsByType = async (eventType: string): Promise<Event[]> => 
 export const deleteEventFromCosmos = async (id: string, eventType: string): Promise<boolean> => {
   if (!azureConfig || !isInitialized) {
     console.warn('Cosmos DB not initialized');
+    return false;
+  }
+  
+  // Validate event type
+  if (!isValidEventType(eventType)) {
+    console.error(`Invalid event type: ${eventType}`);
     return false;
   }
   
