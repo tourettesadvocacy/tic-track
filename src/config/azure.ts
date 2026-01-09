@@ -17,18 +17,16 @@ export const getAzureConfig = (): AzureConfig | null => {
   const endpoint = Constants.expoConfig?.extra?.azureCosmosEndpoint;
   const database = Constants.expoConfig?.extra?.azureCosmosDatabase || 'tic-track';
   const container = Constants.expoConfig?.extra?.azureCosmosContainer || 'events';
+  const key = Constants.expoConfig?.extra?.azureCosmosKey;
   
-  // Key should be stored in Expo Secure Store, not in config
-  // This is a placeholder - actual key will be retrieved from secure storage
-  
-  if (!endpoint) {
-    console.warn('Azure Cosmos DB endpoint not configured');
+  if (!endpoint || !key) {
+    console.warn('Azure Cosmos DB not fully configured');
     return null;
   }
   
   return {
     endpoint,
-    key: '', // Will be loaded from secure store
+    key,
     database,
     container,
   };

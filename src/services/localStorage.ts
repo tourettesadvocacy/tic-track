@@ -97,15 +97,15 @@ export const createEvent = async (
     [
       event.id,
       event.event_type,
-      event.description,
-      event.triggers,
-      event.notes,
+      event.description ?? null,
+      event.triggers ?? null,
+      event.notes ?? null,
       event.started_at,
-      event.ended_at,
-      event.duration_seconds,
+      event.ended_at ?? null,
+      event.duration_seconds ?? null,
       event.created_at,
       event.updated_at,
-      event.synced_at,
+      event.synced_at ?? null,
       event.sync_status,
     ]
   );

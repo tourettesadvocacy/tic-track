@@ -55,6 +55,7 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [isActive, startDate]);
 
   const handleEndEvent = () => {
@@ -139,7 +140,7 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
             value={startDate}
             mode="datetime"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={(event, date) => {
+            onChange={(_event, date) => {
               setShowStartPicker(Platform.OS === 'ios');
               if (date) {
                 setStartDate(date);
@@ -184,7 +185,7 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
                 value={endDate}
                 mode="datetime"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={(event, date) => {
+                onChange={(_event, date) => {
                   setShowEndPicker(Platform.OS === 'ios');
                   if (date) {
                     setEndDate(date);

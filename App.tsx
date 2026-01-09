@@ -2,7 +2,7 @@
  * Tic Track - Main App Component
  * Mobile app for tracking Tourette's syndrome events
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { Event, SyncState } from './src/types/events';
 import { initDatabase } from './src/services/localStorage';
-import { initCosmosClient, storeCosmosKey, getCosmosKey } from './src/services/cosmosClient';
+import { initCosmosClient } from './src/services/cosmosClient';
 import { getMergedEvents, syncPendingEvents, getSyncState, startAutoSync } from './src/services/eventSync';
 import { EventLogger } from './src/components/EventLogger';
 import { EventViewer } from './src/components/EventViewer';
@@ -86,16 +86,11 @@ export default function App() {
       console.log('Local database initialized');
 
       // Try to initialize Cosmos DB
-      const cosmosKey = await getCosmosKey();
-      let cosmosInitialized = false;
+      const cosmosInitialized = await initCosmosClient();
+      setIsCosmosConfigured(cosmosInitialized);
 
-      if (cosmosKey) {
-        cosmosInitialized = await initCosmosClient();
-        setIsCosmosConfigured(cosmosInitialized);
-      } else {
-        console.log('No Cosmos DB key found - will run in offline mode');
-        // Optionally prompt user to configure Azure
-        // For now, we'll just continue in offline mode
+      if (!cosmosInitialized) {
+        console.log('Cosmos DB not configured - running in offline mode');
       }
 
       // Start auto-sync if Cosmos is configured
@@ -158,29 +153,10 @@ export default function App() {
   };
 
   const handleConfigureAzure = () => {
-    Alert.prompt(
-      'Configure Azure Cosmos DB',
-      'Enter your Azure Cosmos DB primary key:',
-      async (key) => {
-        if (key && key.trim()) {
-          try {
-            await storeCosmosKey(key.trim());
-            const initialized = await initCosmosClient();
-            setIsCosmosConfigured(initialized);
-
-            if (initialized) {
-              startAutoSync();
-              Alert.alert('Success', 'Azure Cosmos DB configured successfully!');
-            } else {
-              Alert.alert('Error', 'Failed to initialize Cosmos DB. Please check your key.');
-            }
-          } catch (error) {
-            console.error('Error configuring Azure:', error);
-            Alert.alert('Error', 'Failed to configure Azure Cosmos DB.');
-          }
-        }
-      },
-      'secure-text'
+    Alert.alert(
+      'Configure Cloud Sync',
+      'To configure cloud sync:\n\n1. Add your Azure Cosmos DB key to .env file\n2. Set AZURE_COSMOS_KEY variable\n3. Restart the app\n\nSee README.md for detailed instructions.',
+      [{ text: 'OK' }]
     );
   };
 

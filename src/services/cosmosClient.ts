@@ -1,41 +1,12 @@
 /**
  * Azure Cosmos DB client wrapper
  */
-import { CosmosClient, Container, Database } from '@azure/cosmos';
-import * as SecureStore from 'expo-secure-store';
+import { CosmosClient, Container } from '@azure/cosmos';
 import { getAzureConfig, isAzureConfigValid } from '../config/azure';
 import { Event } from '../types/events';
 
-const COSMOS_KEY_STORAGE_KEY = 'azure_cosmos_key';
-
 let cosmosClient: CosmosClient | null = null;
 let container: Container | null = null;
-
-/**
- * Store Azure Cosmos DB key securely
- */
-export const storeCosmosKey = async (key: string): Promise<void> => {
-  try {
-    await SecureStore.setItemAsync(COSMOS_KEY_STORAGE_KEY, key);
-    console.log('Cosmos DB key stored securely');
-  } catch (error) {
-    console.error('Error storing Cosmos DB key:', error);
-    throw error;
-  }
-};
-
-/**
- * Retrieve Azure Cosmos DB key from secure storage
- */
-export const getCosmosKey = async (): Promise<string | null> => {
-  try {
-    const key = await SecureStore.getItemAsync(COSMOS_KEY_STORAGE_KEY);
-    return key;
-  } catch (error) {
-    console.error('Error retrieving Cosmos DB key:', error);
-    return null;
-  }
-};
 
 /**
  * Initialize Cosmos DB client
@@ -43,21 +14,13 @@ export const getCosmosKey = async (): Promise<string | null> => {
 export const initCosmosClient = async (): Promise<boolean> => {
   try {
     const config = getAzureConfig();
-    if (!config) {
-      console.warn('Azure config not available');
-      return false;
-    }
-    
-    const key = await getCosmosKey();
-    if (!key) {
-      console.warn('Cosmos DB key not found in secure storage');
-      return false;
-    }
-    
-    config.key = key;
     
     if (!isAzureConfigValid(config)) {
       console.warn('Invalid Azure configuration');
+      return false;
+    }
+    
+    if (!config) {
       return false;
     }
     
