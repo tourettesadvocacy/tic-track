@@ -243,6 +243,31 @@ Tic Track is **offline-first**:
 - ✅ Queue-based sync with retry logic
 - ✅ Visual sync status indicators
 
+## Azure Cosmos DB Implementation
+
+Tic Track uses the **Azure Cosmos DB REST API** directly instead of the `@azure/cosmos` SDK for React Native compatibility:
+
+- **Why REST API?** The Azure Cosmos DB SDK requires Node.js-specific modules (like `node:crypto`) that aren't available in React Native/Expo environments
+- **Authentication:** Uses HMAC-SHA256 signatures generated with `crypto-js` for secure API authentication
+- **API Version:** Implements Azure Cosmos DB REST API version `2018-12-31`
+- **Compatibility:** Works seamlessly across iOS, Android, and Web platforms
+
+### Key Features:
+- ✅ Full CRUD operations (Create, Read, Update, Delete)
+- ✅ SQL query support with cross-partition queries
+- ✅ Automatic request signing with master key authentication
+- ✅ Comprehensive error handling (401/403/404/429 status codes)
+- ✅ Partition key support for optimal performance
+
+### Limitations vs SDK:
+- No automatic retry logic (handled at application layer)
+- Manual request construction and signing
+- No connection pooling (uses standard `fetch()`)
+
+For more details on the Azure Cosmos DB REST API, see:
+- [Azure Cosmos DB REST API Documentation](https://docs.microsoft.com/en-us/rest/api/cosmos-db/)
+- [Authorization and Authentication](https://docs.microsoft.com/en-us/rest/api/cosmos-db/access-control-on-cosmosdb-resources)
+
 ## Troubleshooting
 
 ### "Database not initialized" error
