@@ -7,8 +7,24 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { database } from '../database';
 import { syncService } from '../services/SyncService';
+import Tic from '../database/models/Tic';
+import Emotion from '../database/models/Emotion';
+
+type RootStackParamList = {
+  Home: undefined;
+  AddTic: undefined;
+  AddEmotion: undefined;
+  Settings: undefined;
+};
+
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+
+interface Props {
+  navigation: HomeScreenNavigationProp;
+}
 
 interface TicItem {
   id: string;
@@ -19,9 +35,18 @@ interface TicItem {
   synced: boolean;
 }
 
-export const HomeScreen = ({ navigation }: any) => {
+interface EmotionItem {
+  id: string;
+  emotionType: string;
+  intensity: number;
+  notes?: string;
+  timestamp: number;
+  synced: boolean;
+}
+
+export const HomeScreen = ({ navigation }: Props) => {
   const [tics, setTics] = useState<TicItem[]>([]);
-  const [emotions, setEmotions] = useState<any[]>([]);
+  const [emotions, setEmotions] = useState<EmotionItem[]>([]);
 
   useEffect(() => {
     loadData();
@@ -29,13 +54,13 @@ export const HomeScreen = ({ navigation }: any) => {
 
   const loadData = async () => {
     try {
-      const ticsCollection = database.get('tics');
-      const emotionsCollection = database.get('emotions');
+      const ticsCollection = database.get<Tic>('tics');
+      const emotionsCollection = database.get<Emotion>('emotions');
       
       const allTics = await ticsCollection.query().fetch();
       const allEmotions = await emotionsCollection.query().fetch();
       
-      setTics(allTics.map((tic: any) => ({
+      setTics(allTics.map((tic: Tic) => ({
         id: tic.id,
         type: tic.type,
         severity: tic.severity,
@@ -44,7 +69,7 @@ export const HomeScreen = ({ navigation }: any) => {
         synced: tic.synced,
       })));
       
-      setEmotions(allEmotions.map((emotion: any) => ({
+      setEmotions(allEmotions.map((emotion: Emotion) => ({
         id: emotion.id,
         emotionType: emotion.emotionType,
         intensity: emotion.intensity,

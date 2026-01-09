@@ -8,7 +8,22 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { database } from '../database';
+import Emotion from '../database/models/Emotion';
+
+type RootStackParamList = {
+  Home: undefined;
+  AddTic: undefined;
+  AddEmotion: undefined;
+  Settings: undefined;
+};
+
+type AddEmotionScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddEmotion'>;
+
+interface Props {
+  navigation: AddEmotionScreenNavigationProp;
+}
 
 const EMOTION_TYPES = [
   'Happy',
@@ -21,7 +36,7 @@ const EMOTION_TYPES = [
   'Stressed',
 ];
 
-export const AddEmotionScreen = ({ navigation }: any) => {
+export const AddEmotionScreen = ({ navigation }: Props) => {
   const [selectedEmotion, setSelectedEmotion] = useState('');
   const [intensity, setIntensity] = useState('5');
   const [notes, setNotes] = useState('');
@@ -39,9 +54,9 @@ export const AddEmotionScreen = ({ navigation }: any) => {
     }
 
     try {
-      const emotionsCollection = database.get('emotions');
+      const emotionsCollection = database.get<Emotion>('emotions');
       await database.write(async () => {
-        await emotionsCollection.create((emotion: any) => {
+        await emotionsCollection.create((emotion: Emotion) => {
           emotion.emotionType = selectedEmotion;
           emotion.intensity = intensityNum;
           emotion.notes = notes;

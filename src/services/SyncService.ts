@@ -1,11 +1,13 @@
 import { database } from '../database';
 import { azureStorageService } from './AzureStorageService';
 import { Q } from '@nozbe/watermelondb';
+import Tic from '../database/models/Tic';
+import Emotion from '../database/models/Emotion';
 
 export class SyncService {
   async syncTics(): Promise<void> {
     try {
-      const ticsCollection = database.get('tics');
+      const ticsCollection = database.get<Tic>('tics');
       const unsyncedTics = await ticsCollection
         .query(Q.where('synced', false))
         .fetch();
@@ -15,7 +17,7 @@ export class SyncService {
         return;
       }
 
-      const ticsData = unsyncedTics.map((tic: any) => ({
+      const ticsData = unsyncedTics.map((tic: Tic) => ({
         id: tic.id,
         type: tic.type,
         severity: tic.severity,
@@ -30,7 +32,7 @@ export class SyncService {
         // Mark tics as synced
         await database.write(async () => {
           for (const tic of unsyncedTics) {
-            await tic.update((t: any) => {
+            await tic.update((t: Tic) => {
               t.synced = true;
             });
           }
@@ -45,7 +47,7 @@ export class SyncService {
 
   async syncEmotions(): Promise<void> {
     try {
-      const emotionsCollection = database.get('emotions');
+      const emotionsCollection = database.get<Emotion>('emotions');
       const unsyncedEmotions = await emotionsCollection
         .query(Q.where('synced', false))
         .fetch();
@@ -55,7 +57,7 @@ export class SyncService {
         return;
       }
 
-      const emotionsData = unsyncedEmotions.map((emotion: any) => ({
+      const emotionsData = unsyncedEmotions.map((emotion: Emotion) => ({
         id: emotion.id,
         emotionType: emotion.emotionType,
         intensity: emotion.intensity,
@@ -70,7 +72,7 @@ export class SyncService {
         // Mark emotions as synced
         await database.write(async () => {
           for (const emotion of unsyncedEmotions) {
-            await emotion.update((e: any) => {
+            await emotion.update((e: Emotion) => {
               e.synced = true;
             });
           }

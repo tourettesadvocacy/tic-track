@@ -4,6 +4,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const AZURE_CONNECTION_STRING_KEY = 'AZURE_CONNECTION_STRING';
 const AZURE_CONTAINER_NAME = 'tic-track-data';
 
+interface TicData {
+  id: string;
+  type: string;
+  severity: number;
+  description?: string;
+  timestamp: number;
+  createdAt: Date;
+}
+
+interface EmotionData {
+  id: string;
+  emotionType: string;
+  intensity: number;
+  notes?: string;
+  timestamp: number;
+  createdAt: Date;
+}
+
 export class AzureStorageService {
   private blobServiceClient: BlobServiceClient | null = null;
   private containerName: string = AZURE_CONTAINER_NAME;
@@ -25,7 +43,7 @@ export class AzureStorageService {
     this.blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
   }
 
-  async uploadData(data: any, fileName: string): Promise<string | null> {
+  async uploadData(data: TicData[] | EmotionData[], fileName: string): Promise<string | null> {
     if (!this.blobServiceClient) {
       console.warn('Azure Storage not initialized');
       return null;
@@ -51,12 +69,12 @@ export class AzureStorageService {
     }
   }
 
-  async uploadTics(tics: any[]): Promise<string | null> {
+  async uploadTics(tics: TicData[]): Promise<string | null> {
     const fileName = `tics-${Date.now()}.json`;
     return this.uploadData(tics, fileName);
   }
 
-  async uploadEmotions(emotions: any[]): Promise<string | null> {
+  async uploadEmotions(emotions: EmotionData[]): Promise<string | null> {
     const fileName = `emotions-${Date.now()}.json`;
     return this.uploadData(emotions, fileName);
   }

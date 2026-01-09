@@ -8,10 +8,24 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { azureStorageService } from '../services/AzureStorageService';
 
-export const SettingsScreen = ({ navigation }: any) => {
+type RootStackParamList = {
+  Home: undefined;
+  AddTic: undefined;
+  AddEmotion: undefined;
+  Settings: undefined;
+};
+
+type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
+
+interface Props {
+  navigation: SettingsScreenNavigationProp;
+}
+
+export const SettingsScreen = ({ navigation }: Props) => {
   const [connectionString, setConnectionString] = useState('');
   const [isConfigured, setIsConfigured] = useState(false);
 

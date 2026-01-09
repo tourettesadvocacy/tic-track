@@ -8,7 +8,22 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { database } from '../database';
+import Tic from '../database/models/Tic';
+
+type RootStackParamList = {
+  Home: undefined;
+  AddTic: undefined;
+  AddEmotion: undefined;
+  Settings: undefined;
+};
+
+type AddTicScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddTic'>;
+
+interface Props {
+  navigation: AddTicScreenNavigationProp;
+}
 
 const TIC_TYPES = [
   'Motor - Simple',
@@ -18,7 +33,7 @@ const TIC_TYPES = [
   'Other',
 ];
 
-export const AddTicScreen = ({ navigation }: any) => {
+export const AddTicScreen = ({ navigation }: Props) => {
   const [selectedType, setSelectedType] = useState('');
   const [severity, setSeverity] = useState('5');
   const [description, setDescription] = useState('');
@@ -36,9 +51,9 @@ export const AddTicScreen = ({ navigation }: any) => {
     }
 
     try {
-      const ticsCollection = database.get('tics');
+      const ticsCollection = database.get<Tic>('tics');
       await database.write(async () => {
-        await ticsCollection.create((tic: any) => {
+        await ticsCollection.create((tic: Tic) => {
           tic.type = selectedType;
           tic.severity = severityNum;
           tic.description = description;
