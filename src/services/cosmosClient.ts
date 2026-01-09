@@ -153,7 +153,10 @@ export const uploadEvent = async (event: Event): Promise<boolean> => {
 /**
  * Query events from Cosmos DB
  */
-async function queryEvents(query: string = 'SELECT * FROM c'): Promise<Event[]> {
+async function queryEvents(
+  query: string = 'SELECT * FROM c',
+  parameters: Array<{ name: string; value: any }> = []
+): Promise<Event[]> {
   if (!azureConfig || !isInitialized) {
     console.warn('Cosmos DB not initialized');
     return [];
@@ -185,7 +188,7 @@ async function queryEvents(query: string = 'SELECT * FROM c'): Promise<Event[]> 
       },
       body: JSON.stringify({
         query: query,
-        parameters: []
+        parameters: parameters
       }),
     });
     
@@ -246,8 +249,15 @@ export const fetchEventsByType = async (eventType: string): Promise<Event[]> => 
   }
   
   try {
-    const query = `SELECT * FROM c WHERE c.event_type = "${eventType}" ORDER BY c.started_at DESC`;
-    const events = await queryEvents(query);
+    // Use parameterized query to prevent SQL injection
+    const query = 'SELECT * FROM c WHERE c.event_type = @eventType ORDER BY c.started_at DESC';
+    const parameters = [
+      {
+        name: '@eventType',
+        value: eventType
+      }
+    ];
+    const events = await queryEvents(query, parameters);
     
     console.log(`Fetched ${events.length} ${eventType} events from Cosmos DB`);
     return events;
