@@ -104,6 +104,24 @@ export async function getPendingEvents(): Promise<Event[]> {
 }
 
 /**
+ * Get events by sync status
+ */
+export const getEventsBySyncStatus = async (
+  status: 'pending' | 'synced' | 'error'
+): Promise<Event[]> => {
+  try {
+    const result = await db.getAllAsync<Event>(
+      'SELECT * FROM events WHERE sync_status = ? ORDER BY created_at ASC',
+      [status]
+    );
+    return result;
+  } catch (error) {
+    console.error('Error getting events by sync status:', error);
+    return [];
+  }
+};
+
+/**
  * Update event sync status
  */
 export async function updateEventSyncStatus(

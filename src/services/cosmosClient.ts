@@ -6,6 +6,28 @@ import CryptoJS from 'crypto-js';
 import { getAzureConfig, isAzureConfigValid, AzureConfig } from '../config/azure';
 import { Event, EventType } from '../types/events';
 
+type CosmosErrorListener = (message: string | null) => void;
+
+let lastCosmosError: string | null = null;
+const cosmosErrorListeners: CosmosErrorListener[] = [];
+
+const setCosmosError = (message: string | null) => {
+  lastCosmosError = message;
+  cosmosErrorListeners.forEach((listener) => listener(message));
+};
+
+export const subscribeToCosmosErrors = (listener: CosmosErrorListener): (() => void) => {
+  cosmosErrorListeners.push(listener);
+  return () => {
+    const index = cosmosErrorListeners.indexOf(listener);
+    if (index !== -1) {
+      cosmosErrorListeners.splice(index, 1);
+    }
+  };
+};
+
+export const getLastCosmosError = (): string | null => lastCosmosError;
+
 let azureConfig: AzureConfig | null = null;
 let isInitialized = false;
 
@@ -218,10 +240,16 @@ async function queryEvents(
     
     const result = await response.json();
     const events = result.Documents || [];
-    
+
+    if (lastCosmosError) {
+      setCosmosError(null);
+    }
+
     return events;
   } catch (error) {
     console.error('Error querying events from Cosmos DB:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    setCosmosError(`Error querying events from Cosmos DB: ${errorMessage}`);
     return [];
   }
 }

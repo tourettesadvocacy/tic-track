@@ -21,7 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { Event, SyncState } from './src/types/events';
 import { initDatabase } from './src/services/localStorage';
-import { initCosmosClient } from './src/services/cosmosClient';
+import { initCosmosClient, subscribeToCosmosErrors } from './src/services/cosmosClient';
 import { getMergedEvents, syncPendingEvents, getSyncState, startAutoSync } from './src/services/eventSync';
 import { EventLogger } from './src/components/EventLogger';
 import { EventViewer } from './src/components/EventViewer';
@@ -35,6 +35,8 @@ const COLORS = {
   dangerButton: '#DB3238',
   accentActive: '#FFC300',
   placeholder: 'rgba(32, 115, 106, 0.55)',
+  errorBanner: '#7B5131',
+  errorBannerText: '#FEF4E9',
 };
 
 type Screen = 'home' | 'logger' | 'viewer';
@@ -53,6 +55,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [cosmosErrorMessage, setCosmosErrorMessage] = useState<string | null>(null);
 
   const [fontsLoaded] = useFonts({
     Manrope_400Regular,
@@ -76,6 +79,13 @@ useEffect(() => {
   }
   setup();
 }, []);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToCosmosErrors((message) => {
+      setCosmosErrorMessage(message);
+    });
+    return unsubscribe;
+  }, []);
 
   const initializeApp = async () => {
     try {
@@ -298,6 +308,20 @@ useEffect(() => {
           onClose={() => setCurrentScreen('home')}
         />
       )}
+
+      {cosmosErrorMessage && (
+        <View style={styles.errorBanner} pointerEvents="box-none">
+          <MaterialIcons name="error-outline" size={22} color={COLORS.errorBannerText} />
+          <Text style={styles.errorBannerText}>{cosmosErrorMessage}</Text>
+          <TouchableOpacity
+            style={styles.errorBannerClose}
+            onPress={() => setCosmosErrorMessage(null)}
+            accessibilityLabel="Dismiss error message"
+          >
+            <MaterialIcons name="close" size={18} color={COLORS.errorBannerText} />
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -468,5 +492,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Manrope_700Bold',
     textAlign: 'center',
+  },
+  errorBanner: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 20,
+    backgroundColor: COLORS.errorBanner,
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 8,
+  },
+  errorBannerText: {
+    flex: 1,
+    color: COLORS.errorBannerText,
+    fontSize: 14,
+    fontFamily: 'Manrope_600SemiBold',
+  },
+  errorBannerClose: {
+    padding: 6,
+    borderRadius: 999,
+    backgroundColor: 'rgba(254, 244, 233, 0.15)',
   },
 });
