@@ -63,19 +63,16 @@ export default function App() {
   }, []);
 
   // Update sync state periodically
-  useEffect(() => {
-    if (!isInitialized) return;
-
-    const updateSyncState = async () => {
-      const state = await getSyncState();
-      setSyncState(state);
-    };
-
-    updateSyncState();
-    const interval = setInterval(updateSyncState, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [isInitialized]);
+useEffect(() => {
+  async function setup() {
+    try {
+      await initDatabase();
+    } catch (error) {
+      console.log('Database initialization skipped:', error);
+    }
+  }
+  setup();
+}, []);
 
   const initializeApp = async () => {
     try {
