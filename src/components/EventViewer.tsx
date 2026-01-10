@@ -15,12 +15,13 @@ import { Event, EventType } from '../types/events';
 import { formatDateTimeShort, formatDuration } from '../utils/datetime';
 
 const COLORS = {
-  background: '#20736A',
-  text: '#F2F2F2',
+  background: '#C1D9D6',
+  text: '#20736A',
+  buttonText: '#F2F2F2',
   primaryButton: '#D99923',
   dangerButton: '#DB3238',
   accentActive: '#FFC300',
-  placeholder: 'rgba(242, 242, 242, 0.55)',
+  placeholder: 'rgba(32, 115, 106, 0.55)',
 };
 
 interface EventViewerProps {
@@ -146,9 +147,9 @@ export const EventViewer: React.FC<EventViewerProps> = ({
           disabled={isSyncing}
         >
           {isSyncing ? (
-            <ActivityIndicator size="small" color={COLORS.text} />
+            <ActivityIndicator size="small" color={COLORS.buttonText} />
           ) : (
-            <MaterialIcons name="cloud-upload" size={20} color={COLORS.text} />
+            <MaterialIcons name="cloud-upload" size={20} color={COLORS.buttonText} />
           )}
           <Text style={styles.actionButtonText}>
             {isSyncing ? 'Syncing...' : 'Sync Now'}
@@ -161,9 +162,9 @@ export const EventViewer: React.FC<EventViewerProps> = ({
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator size="small" color={COLORS.text} />
+            <ActivityIndicator size="small" color={COLORS.buttonText} />
           ) : (
-            <MaterialIcons name="refresh" size={20} color={COLORS.text} />
+            <MaterialIcons name="refresh" size={20} color={COLORS.buttonText} />
           )}
           <Text style={styles.actionButtonText}>Refresh</Text>
         </TouchableOpacity>
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   actionButtonText: {
-    color: COLORS.text,
+    color: COLORS.buttonText,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   eventCard: {
-    backgroundColor: 'rgba(242, 242, 242, 0.1)',
+    backgroundColor: 'rgba(32, 115, 106, 0.08)',
     borderRadius: 12,
     padding: 15,
     marginBottom: 12,

@@ -12,6 +12,7 @@ import {
   StatusBar,
   Alert,
   Platform,
+  Modal,
 } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -27,12 +28,13 @@ import { EventViewer } from './src/components/EventViewer';
 import { SyncPanel } from './src/components/SyncPanel';
 
 const COLORS = {
-  background: '#20736A',
-  text: '#F2F2F2',
+  background: '#C1D9D6',
+  text: '#20736A',
+  buttonText: '#F2F2F2',
   primaryButton: '#D99923',
   dangerButton: '#DB3238',
   accentActive: '#FFC300',
-  placeholder: 'rgba(242, 242, 242, 0.55)',
+  placeholder: 'rgba(32, 115, 106, 0.55)',
 };
 
 type Screen = 'home' | 'logger' | 'viewer';
@@ -50,6 +52,7 @@ export default function App() {
   const [isCosmosConfigured, setIsCosmosConfigured] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Manrope_400Regular,
@@ -157,6 +160,13 @@ useEffect(() => {
     );
   };
 
+  const handleCloudStatusPress = () => {
+    const message = isCosmosConfigured
+      ? 'Cloud sync is configured and running.'
+      : 'Cloud sync is currently not configured. Events will be stored locally.';
+    Alert.alert('Cloud Sync Status', message, [{ text: 'OK' }]);
+  };
+
   if (!fontsLoaded || !isInitialized) {
     return (
       <View style={styles.loadingContainer}>
@@ -167,56 +177,108 @@ useEffect(() => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ExpoStatusBar style="light" />
+      <ExpoStatusBar style="dark" />
 
       {currentScreen === 'home' && (
         <LinearGradient
-          colors={['#20736A', '#1a5f57']}
+          colors={[COLORS.background, COLORS.background]}
           style={styles.homeContainer}
         >
           <View style={styles.homeContent}>
-            <Text style={styles.appTitle}>Tic Track</Text>
-            <Text style={styles.appSubtitle}>Track your events with confidence</Text>
-
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => setCurrentScreen('logger')}
-            >
-              <MaterialIcons name="add-circle" size={28} color={COLORS.text} />
-              <Text style={styles.primaryButtonText}>I'm Having an Event!</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => setCurrentScreen('viewer')}
-            >
-              <MaterialIcons name="history" size={24} color={COLORS.text} />
-              <Text style={styles.secondaryButtonText}>View History</Text>
-            </TouchableOpacity>
-
-            <SyncPanel
-              syncState={syncState}
-              onSync={handleSync}
-              isCosmosConfigured={isCosmosConfigured}
-            />
-
-            {!isCosmosConfigured && (
+            <View style={styles.topBar}>
               <TouchableOpacity
-                style={styles.configButton}
-                onPress={handleConfigureAzure}
+                style={styles.settingsTrigger}
+                onPress={() => setIsSettingsVisible(true)}
+                accessibilityLabel="Open settings"
               >
-                <MaterialIcons name="settings" size={20} color={COLORS.text} />
-                <Text style={styles.configButtonText}>Configure Cloud Sync</Text>
+                <MaterialIcons name="settings" size={28} color={COLORS.text} />
               </TouchableOpacity>
-            )}
+            </View>
 
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                {events.length} event{events.length !== 1 ? 's' : ''} tracked
-              </Text>
+            <View style={styles.homeBody}>
+              <Text style={styles.appTitle}>Tic Track</Text>
+              <Text style={styles.appSubtitle}>Track your events with confidence</Text>
+
+              <TouchableOpacity
+                style={styles.primaryButton}
+                onPress={() => setCurrentScreen('logger')}
+              >
+                <MaterialIcons name="add-circle" size={28} color={COLORS.buttonText} />
+                <Text style={styles.primaryButtonText}>I'm Having an Event!</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() => setCurrentScreen('viewer')}
+              >
+                <MaterialIcons name="history" size={24} color={COLORS.buttonText} />
+                <Text style={styles.secondaryButtonText}>View History</Text>
+              </TouchableOpacity>
+
+              <SyncPanel
+                syncState={syncState}
+                onSync={handleSync}
+                isCosmosConfigured={isCosmosConfigured}
+              />
+
+              {!isCosmosConfigured && (
+                <TouchableOpacity
+                  style={styles.configButton}
+                  onPress={handleConfigureAzure}
+                >
+                  <MaterialIcons name="settings" size={20} color={COLORS.buttonText} />
+                  <Text style={styles.configButtonText}>Configure Cloud Sync</Text>
+                </TouchableOpacity>
+              )}
+
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>
+                  {events.length} event{events.length !== 1 ? 's' : ''} tracked
+                </Text>
+              </View>
             </View>
           </View>
         </LinearGradient>
+      )}
+
+      {currentScreen === 'home' && (
+        <Modal
+          transparent
+          animationType="fade"
+          visible={isSettingsVisible}
+          onRequestClose={() => setIsSettingsVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.settingsModal}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Settings</Text>
+                <TouchableOpacity
+                  onPress={() => setIsSettingsVisible(false)}
+                  accessibilityLabel="Close settings"
+                >
+                  <MaterialIcons name="close" size={24} color={COLORS.text} />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleCloudStatusPress}
+              >
+                <Text style={styles.modalButtonText}>Cloud sync not configured</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalPrimaryButton]}
+                onPress={() => {
+                  handleConfigureAzure();
+                  setIsSettingsVisible(false);
+                }}
+              >
+                <Text style={styles.modalPrimaryButtonText}>Configure Cloud Sync</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       )}
 
       {currentScreen === 'logger' && (
@@ -263,6 +325,19 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     paddingTop: Platform.OS === 'ios' ? 20 : StatusBar.currentHeight ? StatusBar.currentHeight + 20 : 40,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 10,
+  },
+  settingsTrigger: {
+    padding: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(32, 115, 106, 0.15)',
+  },
+  homeBody: {
+    flex: 1,
     justifyContent: 'center',
   },
   appTitle: {
@@ -285,7 +360,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.primaryButton,
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 999,
     marginBottom: 15,
     gap: 12,
     elevation: 4,
@@ -295,7 +370,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   primaryButtonText: {
-    color: COLORS.text,
+    color: COLORS.buttonText,
     fontSize: 20,
     fontFamily: 'Manrope_700Bold',
   },
@@ -303,7 +378,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(242, 242, 242, 0.15)',
+    backgroundColor: 'rgba(32, 115, 106, 0.15)',
     padding: 18,
     borderRadius: 12,
     borderWidth: 2,
@@ -312,7 +387,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   secondaryButtonText: {
-    color: COLORS.text,
+    color: COLORS.buttonText,
     fontSize: 18,
     fontFamily: 'Manrope_600SemiBold',
   },
@@ -320,14 +395,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(242, 242, 242, 0.1)',
+    backgroundColor: 'rgba(32, 115, 106, 0.1)',
     padding: 12,
     borderRadius: 8,
     marginTop: 10,
     gap: 8,
   },
   configButtonText: {
-    color: COLORS.text,
+    color: COLORS.buttonText,
     fontSize: 14,
     fontFamily: 'Manrope_600SemiBold',
   },
@@ -340,5 +415,58 @@ const styles = StyleSheet.create({
     color: COLORS.placeholder,
     fontSize: 14,
     fontFamily: 'Manrope_400Regular',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  settingsModal: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    gap: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    color: COLORS.text,
+    fontSize: 20,
+    fontFamily: 'Manrope_700Bold',
+  },
+  modalButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.text,
+    backgroundColor: COLORS.text,
+  },
+  modalButtonText: {
+    color: COLORS.buttonText,
+    fontSize: 16,
+    fontFamily: 'Manrope_600SemiBold',
+    textAlign: 'center',
+  },
+  modalPrimaryButton: {
+    backgroundColor: COLORS.primaryButton,
+    borderColor: COLORS.primaryButton,
+  },
+  modalPrimaryButtonText: {
+    color: COLORS.buttonText,
+    fontSize: 16,
+    fontFamily: 'Manrope_700Bold',
+    textAlign: 'center',
   },
 });

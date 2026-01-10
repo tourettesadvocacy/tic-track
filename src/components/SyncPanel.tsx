@@ -8,12 +8,13 @@ import { SyncState } from '../types/events';
 import { getTimeAgo } from '../utils/datetime';
 
 const COLORS = {
-  background: '#20736A',
-  text: '#F2F2F2',
+  background: '#C1D9D6',
+  text: '#20736A',
+  buttonText: '#F2F2F2',
   primaryButton: '#D99923',
   dangerButton: '#DB3238',
   accentActive: '#FFC300',
-  placeholder: 'rgba(242, 242, 242, 0.55)',
+  placeholder: 'rgba(32, 115, 106, 0.55)',
 };
 
 interface SyncPanelProps {
@@ -85,7 +86,7 @@ export const SyncPanel: React.FC<SyncPanelProps> = ({
 
       {syncState.pendingCount > 0 && !syncState.isSyncing && (
         <TouchableOpacity style={styles.syncButton} onPress={onSync}>
-          <MaterialIcons name="sync" size={20} color={COLORS.text} />
+          <MaterialIcons name="sync" size={20} color={COLORS.buttonText} />
           <Text style={styles.syncButtonText}>Sync Now</Text>
         </TouchableOpacity>
       )}
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   syncButtonText: {
-    color: COLORS.text,
+    color: COLORS.buttonText,
     fontSize: 14,
     fontWeight: '600',
   },

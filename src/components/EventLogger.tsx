@@ -18,12 +18,13 @@ import { createEvent } from '../services/localStorage';
 import { toISOString, formatDuration, calculateDuration } from '../utils/datetime';
 
 const COLORS = {
-  background: '#20736A',
-  text: '#F2F2F2',
+  background: '#C1D9D6',
+  text: '#20736A',
+  buttonText: '#F2F2F2',
   primaryButton: '#D99923',
   dangerButton: '#DB3238',
   accentActive: '#FFC300',
-  placeholder: 'rgba(242, 242, 242, 0.55)',
+  placeholder: 'rgba(32, 115, 106, 0.55)',
 };
 
 interface EventLoggerProps {
@@ -162,7 +163,7 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
         {/* End Event Button */}
         {isActive && (
           <TouchableOpacity style={styles.endButton} onPress={handleEndEvent}>
-            <MaterialIcons name="stop" size={20} color={COLORS.text} />
+            <MaterialIcons name="stop" size={20} color={COLORS.buttonText} />
             <Text style={styles.endButtonText}>End Event</Text>
           </TouchableOpacity>
         )}
@@ -251,7 +252,7 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
             onPress={handleSave}
             disabled={isSaving}
           >
-            <MaterialIcons name="save" size={20} color={COLORS.text} />
+            <MaterialIcons name="save" size={20} color={COLORS.buttonText} />
             <Text style={styles.buttonText}>
               {isSaving ? 'Saving...' : 'Save Event'}
             </Text>
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   dateButton: {
-    backgroundColor: 'rgba(242, 242, 242, 0.1)',
+    backgroundColor: 'rgba(32, 115, 106, 0.1)',
     padding: 15,
     borderRadius: 8,
     borderWidth: 1,
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   input: {
-    backgroundColor: 'rgba(242, 242, 242, 0.1)',
+    backgroundColor: 'rgba(32, 115, 106, 0.1)',
     color: COLORS.text,
     padding: 15,
     borderRadius: 8,
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   endButtonText: {
-    color: COLORS.text,
+    color: COLORS.buttonText,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -372,15 +373,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   cancelButton: {
-    backgroundColor: 'rgba(242, 242, 242, 0.2)',
+    backgroundColor: 'rgba(32, 115, 106, 0.25)',
     borderWidth: 1,
-    borderColor: COLORS.placeholder,
+    borderColor: 'rgba(32, 115, 106, 0.4)',
   },
   saveButton: {
     backgroundColor: COLORS.primaryButton,
   },
   buttonText: {
-    color: COLORS.text,
+    color: COLORS.buttonText,
     fontSize: 16,
     fontWeight: '600',
   },
