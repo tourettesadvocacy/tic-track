@@ -2,7 +2,7 @@
  * Tic Track - Main App Component
  * Mobile app for tracking Tourette's syndrome events
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -29,12 +29,12 @@ import { SyncPanel } from './src/components/SyncPanel';
 
 const COLORS = {
   background: '#C1D9D6',
-  text: '#20736A',
+  text: '#0D0D0D',
   buttonText: '#F2F2F2',
   primaryButton: '#D99923',
   dangerButton: '#DB3238',
   accentActive: '#FFC300',
-  placeholder: 'rgba(32, 115, 106, 0.55)',
+  placeholder: 'rgba(13, 13, 13, 0.45)',
   errorBanner: '#7B5131',
   errorBannerText: '#FEF4E9',
 };
@@ -63,22 +63,43 @@ export default function App() {
     Manrope_700Bold,
   });
 
+  const refreshSyncState = useCallback(async () => {
+    try {
+      const state = await getSyncState();
+      setSyncState(state);
+    } catch (error) {
+      console.error('Error refreshing sync state:', error);
+    }
+  }, []);
+
   // Initialize app
   useEffect(() => {
     initializeApp();
   }, []);
 
   // Update sync state periodically
-useEffect(() => {
-  async function setup() {
-    try {
-      await initDatabase();
-    } catch (error) {
-      console.log('Database initialization skipped:', error);
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
     }
-  }
-  setup();
-}, []);
+
+    let isMounted = true;
+
+    const updateState = async () => {
+      if (!isMounted) {
+        return;
+      }
+      await refreshSyncState();
+    };
+
+    updateState();
+    const interval = setInterval(updateState, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [isInitialized, refreshSyncState]);
 
   useEffect(() => {
     const unsubscribe = subscribeToCosmosErrors((message) => {
@@ -108,8 +129,9 @@ useEffect(() => {
         startAutoSync();
       }
 
-      // Load events
+      // Load events and sync state
       await loadEvents();
+      await refreshSyncState();
 
       setIsInitialized(true);
       console.log('App initialized successfully');
@@ -135,9 +157,7 @@ useEffect(() => {
     setCurrentScreen('home');
     await loadEvents();
 
-    // Update sync state
-    const state = await getSyncState();
-    setSyncState(state);
+    await refreshSyncState();
   };
 
   const handleSync = async () => {
@@ -145,11 +165,7 @@ useEffect(() => {
       setSyncState((prev) => ({ ...prev, isSyncing: true, message: 'Syncing...' }));
       const result = await syncPendingEvents();
       
-      // Update sync state
-      const state = await getSyncState();
-      setSyncState(state);
-
-      // Reload events to reflect sync status
+      await refreshSyncState();
       await loadEvents();
 
       if (!result.success && result.errorCount > 0) {
@@ -158,7 +174,7 @@ useEffect(() => {
     } catch (error) {
       console.error('Error syncing:', error);
       Alert.alert('Sync Error', 'Failed to sync events. Please try again.');
-      setSyncState((prev) => ({ ...prev, isSyncing: false }));
+      await refreshSyncState();
     }
   };
 
@@ -383,8 +399,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primaryButton,
-    padding: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
     borderRadius: 999,
+    marginHorizontal: 37,
     marginBottom: 15,
     gap: 12,
     elevation: 4,
@@ -397,6 +415,8 @@ const styles = StyleSheet.create({
     color: COLORS.buttonText,
     fontSize: 20,
     fontFamily: 'Manrope_700Bold',
+    textAlign: 'center',
+    flexShrink: 1,
   },
   secondaryButton: {
     flexDirection: 'row',

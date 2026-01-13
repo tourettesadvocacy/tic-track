@@ -1,5 +1,7 @@
 import * as SQLite from 'expo-sqlite';
-import { Event } from '../types/events';
+import { v4 as uuidv4 } from 'uuid';
+import { Event, EventType } from '../types/events';
+import { getCurrentISOString } from '../utils/datetime';
 
 // Database instance
 const db = SQLite.openDatabaseSync('tictrack-v2.db');
@@ -54,24 +56,53 @@ export async function saveEvent(event: Event): Promise<void> {
       [
         event.id,
         event.event_type,
-        event.description || null,
-        event.triggers || null,
-        event.notes || null,
+        event.description ?? null,
+        event.triggers ?? null,
+        event.notes ?? null,
         event.started_at,
-        event.ended_at || null,
-        event.duration_seconds || null,
-        event. created_at,
-        event. updated_at,
-        event. synced_at || null,
+        event.ended_at ?? null,
+        event.duration_seconds ?? null,
+        event.created_at,
+        event.updated_at,
+        event.synced_at ?? null,
         event.sync_status,
       ]
     );
-    console.log('Event saved to local database:', event. id);
+    console.log('Event saved to local database:', event.id);
   } catch (error) {
     console.error('Error saving event:', error);
     throw error;
   }
 }
+
+export const createEvent = async (
+  eventType: EventType,
+  startedAt: string,
+  endedAt: string | null,
+  description: string | null,
+  triggers: string | null,
+  notes: string | null,
+  durationSeconds: number | null
+): Promise<Event> => {
+  const timestamp = getCurrentISOString();
+  const event: Event = {
+    id: uuidv4(),
+    event_type: eventType,
+    description,
+    triggers,
+    notes,
+    started_at: startedAt,
+    ended_at: endedAt,
+    duration_seconds: durationSeconds,
+    created_at: timestamp,
+    updated_at: timestamp,
+    synced_at: null,
+    sync_status: 'pending',
+  };
+
+  await saveEvent(event);
+  return event;
+};
 
 /**
  * Get all events from local database

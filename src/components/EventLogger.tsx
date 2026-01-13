@@ -10,6 +10,7 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -19,12 +20,12 @@ import { toISOString, formatDuration, calculateDuration } from '../utils/datetim
 
 const COLORS = {
   background: '#C1D9D6',
-  text: '#20736A',
+  text: '#0D0D0D',
   buttonText: '#F2F2F2',
   primaryButton: '#D99923',
   dangerButton: '#DB3238',
   accentActive: '#FFC300',
-  placeholder: 'rgba(32, 115, 106, 0.55)',
+  placeholder: 'rgba(13, 13, 13, 0.45)',
 };
 
 interface EventLoggerProps {
@@ -87,16 +88,14 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
       onEventSaved();
     } catch (error) {
       console.error('Error saving event:', error);
-      alert('Error saving event. Please try again.');
+      Alert.alert('Save Failed', 'Error saving event. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
-
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       <View style={styles.content}>
-        {/* Event Type Selector */}
         <Text style={styles.label}>Event Type *</Text>
         <View style={styles.radioGroup}>
           <TouchableOpacity
@@ -125,15 +124,9 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
           </TouchableOpacity>
         </View>
 
-        {/* Start Time */}
         <Text style={styles.label}>Start Time *</Text>
-        <TouchableOpacity
-          style={styles.dateButton}
-          onPress={() => setShowStartPicker(true)}
-        >
-          <Text style={styles.dateButtonText}>
-            {startDate.toLocaleString()}
-          </Text>
+        <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartPicker(true)}>
+          <Text style={styles.dateButtonText}>{startDate.toLocaleString()}</Text>
         </TouchableOpacity>
 
         {showStartPicker && (
@@ -150,9 +143,8 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
           />
         )}
 
-        {/* Duration Display */}
         {isActive && (
-          <View style={styles.durationDisplay}>
+          <View style={styles.liveDurationRow}>
             <MaterialIcons name="timer" size={24} color={COLORS.accentActive} />
             <Text style={styles.durationText}>
               Duration: {formatDuration(currentDuration)}
@@ -160,7 +152,6 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
           </View>
         )}
 
-        {/* End Event Button */}
         {isActive && (
           <TouchableOpacity style={styles.endButton} onPress={handleEndEvent}>
             <MaterialIcons name="stop" size={20} color={COLORS.buttonText} />
@@ -168,17 +159,11 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
           </TouchableOpacity>
         )}
 
-        {/* End Time (if ended) */}
         {endDate && (
           <>
             <Text style={styles.label}>End Time</Text>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowEndPicker(true)}
-            >
-              <Text style={styles.dateButtonText}>
-                {endDate.toLocaleString()}
-              </Text>
+            <TouchableOpacity style={styles.dateButton} onPress={() => setShowEndPicker(true)}>
+              <Text style={styles.dateButtonText}>{endDate.toLocaleString()}</Text>
             </TouchableOpacity>
 
             {showEndPicker && (
@@ -197,13 +182,14 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
 
             <View style={styles.durationDisplay}>
               <Text style={styles.durationText}>
-                Duration: {formatDuration(calculateDuration(toISOString(startDate), toISOString(endDate)))}
+                Duration: {formatDuration(
+                  calculateDuration(toISOString(startDate), toISOString(endDate))
+                )}
               </Text>
             </View>
           </>
         )}
 
-        {/* Description */}
         <Text style={styles.label}>Description</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
@@ -215,7 +201,6 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
           numberOfLines={3}
         />
 
-        {/* Triggers */}
         <Text style={styles.label}>Triggers</Text>
         <TextInput
           style={styles.input}
@@ -225,7 +210,6 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
           placeholderTextColor={COLORS.placeholder}
         />
 
-        {/* Notes */}
         <Text style={styles.label}>Notes</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
@@ -237,7 +221,6 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
           numberOfLines={3}
         />
 
-        {/* Action Buttons */}
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, styles.cancelButton]}
@@ -246,16 +229,13 @@ export const EventLogger: React.FC<EventLoggerProps> = ({ onEventSaved, onCancel
           >
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             style={[styles.button, styles.saveButton]}
             onPress={handleSave}
             disabled={isSaving}
           >
             <MaterialIcons name="save" size={20} color={COLORS.buttonText} />
-            <Text style={styles.buttonText}>
-              {isSaving ? 'Saving...' : 'Save Event'}
-            </Text>
+            <Text style={styles.buttonText}>{isSaving ? 'Saving...' : 'Save Event'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -267,6 +247,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  scrollContent: {
+    paddingBottom: 40,
   },
   content: {
     padding: 20,
@@ -341,6 +324,12 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 16,
     fontWeight: '600',
+  },
+  liveDurationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
   },
   endButton: {
     flexDirection: 'row',
