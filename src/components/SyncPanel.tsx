@@ -9,12 +9,12 @@ import { getTimeAgo } from '../utils/datetime';
 
 const COLORS = {
   background: '#C1D9D6',
-  text: '#20736A',
+  text: '#0D0D0D',
   buttonText: '#F2F2F2',
   primaryButton: '#D99923',
   dangerButton: '#DB3238',
   accentActive: '#FFC300',
-  placeholder: 'rgba(32, 115, 106, 0.55)',
+  placeholder: 'rgba(13, 13, 13, 0.45)',
 };
 
 interface SyncPanelProps {
